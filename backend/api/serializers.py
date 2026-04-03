@@ -6,6 +6,11 @@ class CompanyProfileSerializer(serializers.ModelSerializer):
         model = CompanyProfile
         fields = ['hero_title', 'hero_subtitle', 'contact_email', 'logo']
         
+class ContactInquirySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactInquiry
+        fields = ['name', 'email', 'subject', 'message']
+        
         
         
         
