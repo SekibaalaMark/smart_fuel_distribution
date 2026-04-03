@@ -1,8 +1,11 @@
-# serializers.py
 from rest_framework import serializers
-from .models import ContactInquiry
+from .models import ContactInquiry, CompanyProfile
 
-class ContactInquirySerializer(serializers.ModelSerializer):
+class CompanyProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ContactInquiry
-        fields = '__all__'
+        model = CompanyProfile
+        fields = ['hero_title', 'hero_subtitle', 'contact_email', 'logo']
+        
+        
+        
+        
