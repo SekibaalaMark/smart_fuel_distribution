@@ -40,7 +40,7 @@ class ContactCreateView(APIView):
                     subject=f"New Website Inquiry: {inquiry.subject}",
                     message=f"From: {inquiry.name} ({inquiry.email})\n\n{inquiry.message}",
                     from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings.py
-                    recipient_list=['admin@yourcompany.com'], # The company's email
+                    recipient_list=['sekibaalamark44@gmail.com'], # The company's email
                     fail_silently=False,
                 )
             except Exception as e:
