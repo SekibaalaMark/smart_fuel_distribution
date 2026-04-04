@@ -2,23 +2,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.mail import send_mail
-from .models import CompanyProfile, ContactInquiry
-from .serializers import CompanyProfileSerializer, ContactInquirySerializer
+from .models import *
+from .serializers import *
+from .permissions import *
 
 
-
-
-
-
-from rest_framework import status, permissions
-from django.core.mail import send_mail
-from .models import CompanyProfile, ContactInquiry
-from .serializers import CompanyProfileSerializer, ContactInquirySerializer
 
 # --- COMPANY INFO MANAGEMENT ---
 
 class AdminCompanyUpdateView(APIView):
-    permission_classes = [permissions.IsAdminUser] # Only Admins allowed
+    permission_classes = [IsSuperUser] # Only Admins allowed
 
     def put(self, request):
         profile = CompanyProfile.objects.first()
@@ -35,7 +28,7 @@ class AdminCompanyUpdateView(APIView):
 
 
 class AdminInquiryListView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperUser]
 
     def get(self, request):
         # Admin views all emails sent by clients
@@ -47,7 +40,7 @@ class AdminInquiryListView(APIView):
 
 
 class AdminReplyEmailView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperUser]
 
     def post(self, request, pk):
         try:
