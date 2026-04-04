@@ -5,6 +5,34 @@ from django.core.mail import send_mail
 from .models import CompanyProfile, ContactInquiry
 from .serializers import CompanyProfileSerializer, ContactInquirySerializer
 
+
+
+
+
+
+from rest_framework import status, permissions
+from django.core.mail import send_mail
+from .models import CompanyProfile, ContactInquiry
+from .serializers import CompanyProfileSerializer, ContactInquirySerializer
+
+# --- COMPANY INFO MANAGEMENT ---
+
+class AdminCompanyUpdateView(APIView):
+    permission_classes = [permissions.IsAdminUser] # Only Admins allowed
+
+    def put(self, request):
+        profile = CompanyProfile.objects.first()
+        # If no profile exists, we create one; otherwise, update the existing one.
+        serializer = CompanyProfileSerializer(profile, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
 # 1. Fetch website content (GET)
 class CompanyInfoView(APIView):
     def get(self, request):
@@ -54,3 +82,8 @@ class ContactCreateView(APIView):
             )
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    
+    
+    
