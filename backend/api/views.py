@@ -33,6 +33,19 @@ class AdminCompanyUpdateView(APIView):
 
 
 
+
+class AdminInquiryListView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        # Admin views all emails sent by clients
+        inquiries = ContactInquiry.objects.all().order_by('-created_at')
+        serializer = ContactInquirySerializer(inquiries, many=True)
+        return Response(serializer.data)
+
+
+
+
 # 1. Fetch website content (GET)
 class CompanyInfoView(APIView):
     def get(self, request):
