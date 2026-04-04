@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'corsheaders',
     
     'rest_framework',
+    'rest_framework_simplejwt',
     
     
     'api',
@@ -125,7 +126,22 @@ REST_FRAMEWORK = {
     )
 }
 
+# settings.py
+from datetime import timedelta
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Access token expires in 1 hour
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # Refresh token expires in 1 day
+    'ROTATE_REFRESH_TOKENS': True,                  # Gives a new refresh token when used
+    'BLACKLIST_AFTER_ROTATION': True,               # Old refresh tokens become invalid
+    'UPDATE_LAST_LOGIN': True,                      # Updates the 'last_login' field in User model
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,                      # Uses your Django Secret Key
+    'AUTH_HEADER_TYPES': ('Bearer',),               # Frontend must send: "Authorization: Bearer <token>"
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+}
 
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
