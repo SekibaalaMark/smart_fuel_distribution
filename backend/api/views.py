@@ -44,6 +44,42 @@ class AdminInquiryListView(APIView):
 
 
 
+from django.core.mail import send_mail
+from django.conf import settings
+
+class AdminReplyEmailView(APIView):
+    permission_classes = [IsSuperUser]
+
+    def post(self, request, pk):
+        try:
+            inquiry = ContactInquiry.objects.get(pk=pk)
+            reply_text = request.data.get('message')
+
+            if not reply_text:
+                return Response({"error": "Message body is empty"}, status=400)
+
+            # Send actual email to the user's inbox
+            send_mail(
+                subject=f"Re: {inquiry.subject}",
+                message=reply_text,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[inquiry.email], # The client's email from the DB
+                fail_silently=False, # Set to False to see errors if the SMTP fails
+            )
+
+            # Save reply to DB for the Admin to see history
+            inquiry.admin_reply = reply_text
+            inquiry.is_resolved = True
+            inquiry.save()
+
+            return Response({"status": "Email sent to client's inbox!"})
+
+        except ContactInquiry.DoesNotExist:
+            return Response({"error": "Inquiry not found"}, status=404)
+
+
+
+'''
 class AdminReplyEmailView(APIView):
     permission_classes = [IsSuperUser]
 
@@ -72,7 +108,7 @@ class AdminReplyEmailView(APIView):
         except ContactInquiry.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-
+'''
 
 # 1. Fetch website content (GET)
 class CompanyInfoView(APIView):
