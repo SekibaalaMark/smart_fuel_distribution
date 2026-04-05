@@ -143,5 +143,26 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
 }
 
-# settings.py
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# 1. Use the SMTP backend
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load the .env file
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
+# Now access them using os.getenv()
+#SECRET_KEY = os.getenv("SECRET_KEY")
+#DEBUG = os.getenv("DEBUG") == "True"
+
+# Email Configuration
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST= os.getenv("EMAIL_HOST")
+EMAIL_PORT= os.getenv("EMAIL_PORT")
+EMAIL_USE_TLS=os.getenv("EMAIL_USE_TLS")
+EMAIL_HOST_PASSWORD= os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL= os.getenv("DEFAULT_FROM_EMAIL")
