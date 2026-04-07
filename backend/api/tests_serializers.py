@@ -39,3 +39,62 @@ class TokenSerializerTest(TestCase):
         self.assertEqual(response_data['username'], self.username)
         self.assertEqual(response_data['is_staff'], True)
         self.assertEqual(response_data['is_superuser'], False)
+        
+        
+        
+        
+
+
+from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from rest_framework.test import APIRequestFactory
+from .models import CompanyProfile
+from .serializers import CompanyProfileSerializer
+
+class CompanyProfileSerializerTest(TestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.logo = SimpleUploadedFile(
+            name='logo.png',
+            content=b'\x89PNG\r\n\x1a\n...', # Mock PNG header
+            content_type='image/png'
+        )
+        self.company = CompanyProfile.objects.create(
+            name="Smart Fuel Distro",
+            hero_title="Efficiency in Every Drop",
+            hero_subtitle="Optimizing fuel logistics with real-time data.",
+            contact_email="contact@smartfuel.com",
+            logo=self.logo
+        )
+
+    def test_serializer_output_fields(self):
+        """Tests that the serializer returns the correct fields and values."""
+        request = self.factory.get('/')
+        serializer = CompanyProfileSerializer(instance=self.company, context={'request': request})
+        data = serializer.data
+
+        # Check that expected fields are present
+        expected_fields = {'hero_title', 'hero_subtitle', 'contact_email', 'logo'}
+        self.assertEqual(set(data.keys()), expected_fields)
+        
+        # FIX: Use assertIn to check for the directory and file extension 
+        # rather than the exact filename string.
+        self.assertIn('/assets/', data['logo'])
+        self.assertTrue(data['logo'].endswith('.png'))
+
+    def test_serializer_omits_name(self):
+        """Tests that the 'name' field is NOT in the serialized data (as per your Meta class)."""
+        serializer = CompanyProfileSerializer(instance=self.company)
+        self.assertNotIn('name', serializer.data)
+
+    def test_invalid_email_data(self):
+        """Tests that the serializer catches invalid email formats."""
+        invalid_data = {
+            "hero_title": "Title",
+            "hero_subtitle": "Subtitle",
+            "contact_email": "not-an-email",
+            "logo": self.logo
+        }
+        serializer = CompanyProfileSerializer(data=invalid_data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('contact_email', serializer.errors)
