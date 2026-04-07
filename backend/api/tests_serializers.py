@@ -98,3 +98,52 @@ class CompanyProfileSerializerTest(TestCase):
         serializer = CompanyProfileSerializer(data=invalid_data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('contact_email', serializer.errors)
+        
+        
+        
+        
+
+
+from django.test import TestCase
+from .serializers import ContactInquirySerializer
+
+class ContactInquirySerializerTest(TestCase):
+    def setUp(self):
+        self.valid_payload = {
+            "name": "Mark Sekibaala",
+            "email": "mark@example.com",
+            "subject": "Fuel Delivery Inquiry",
+            "message": "I would like to inquire about smart distribution costs."
+        }
+
+    def test_valid_serializer(self):
+        """Tests that the serializer is valid with correct data."""
+        serializer = ContactInquirySerializer(data=self.valid_payload)
+        self.assertTrue(serializer.is_valid())
+        self.assertEqual(serializer.validated_data['name'], self.valid_payload['name'])
+
+    def test_invalid_email(self):
+        """Tests that an incorrect email format is rejected."""
+        payload = self.valid_payload.copy()
+        payload['email'] = 'not-an-email'
+        serializer = ContactInquirySerializer(data=payload)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('email', serializer.errors)
+
+    def test_missing_required_fields(self):
+        """Tests that the serializer fails if a required field is missing."""
+        payload = {"name": "Mark"}  # Missing email, subject, and message
+        serializer = ContactInquirySerializer(data=payload)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('email', serializer.errors)
+        self.assertIn('subject', serializer.errors)
+        self.assertIn('message', serializer.errors)
+
+    def test_readonly_fields_omitted(self):
+        """Tests that fields like 'is_resolved' are not accepted even if sent."""
+        payload = self.valid_payload.copy()
+        payload['is_resolved'] = True  # This field isn't in the Serializer Meta
+        serializer = ContactInquirySerializer(data=payload)
+        self.assertTrue(serializer.is_valid())
+        # is_resolved should NOT be in validated_data because it's not in the 'fields' list
+        self.assertNotIn('is_resolved', serializer.validated_data)
