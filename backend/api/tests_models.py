@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .models import CompanyProfile
-
+from django.core.exceptions import ValidationError
 class CompanyProfileModelTest(TestCase):
     def setUp(self):
         """
@@ -37,3 +37,11 @@ class CompanyProfileModelTest(TestCase):
         # Getting the field object to check its max_length attribute
         max_length = self.company._meta.get_field('name').max_length
         self.assertEqual(max_length, 200)
+    from django.core.exceptions import ValidationError
+
+# Add this method to your CompanyProfileModelTest class
+def test_invalid_email_raises_error(self):
+    """Tests that an improperly formatted email raises a ValidationError."""
+    self.company.contact_email = "not-an-email"
+    with self.assertRaises(ValidationError):
+        self.company.full_clean()
