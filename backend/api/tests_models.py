@@ -45,3 +45,46 @@ def test_invalid_email_raises_error(self):
     self.company.contact_email = "not-an-email"
     with self.assertRaises(ValidationError):
         self.company.full_clean()
+        
+        
+
+
+from django.test import TestCase
+from .models import ContactInquiry
+
+class ContactInquiryModelTest(TestCase):
+    def setUp(self):
+        self.inquiry = ContactInquiry.objects.create(
+            name="John Doe",
+            email="johndoe@example.com",
+            subject="Inquiry about Fuel Rates",
+            message="Hello, I would like to know the current bulk fuel rates."
+        )
+
+    def test_inquiry_creation(self):
+        """Tests that the inquiry is saved correctly with default values."""
+        self.assertEqual(self.inquiry.name, "John Doe")
+        # Check that is_resolved defaults to False
+        self.assertFalse(self.inquiry.is_resolved)
+        # Check that admin_reply is empty by default
+        self.assertIsNone(self.inquiry.admin_reply)
+
+    def test_created_at_auto_filled(self):
+        """Tests that the created_at field is automatically populated."""
+        self.assertIsNotNone(self.inquiry.created_at)
+
+    def test_str_representation(self):
+        """Tests that the string representation is the name of the inquirer."""
+        # Note: If you haven't defined a __str__ method in your model yet, 
+        # this test will fail. It's good practice to add one!
+        self.assertEqual(str(self.inquiry), "John Doe")
+
+    def test_resolve_inquiry(self):
+        """Tests updating the inquiry status and adding a reply."""
+        self.inquiry.is_resolved = True
+        self.inquiry.admin_reply = "We have sent the rates to your email."
+        self.inquiry.save()
+        
+        updated_inquiry = ContactInquiry.objects.get(id=self.inquiry.id)
+        self.assertTrue(updated_inquiry.is_resolved)
+        self.assertEqual(updated_inquiry.admin_reply, "We have sent the rates to your email.")
