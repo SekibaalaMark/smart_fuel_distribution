@@ -101,3 +101,55 @@ class AdminCompanyUpdateViewTest(APITestCase):
         """Tests that anonymous users are rejected."""
         response = self.client.put(self.url, {"hero_title": "No Auth"})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        
+        
+        
+
+from django.urls import reverse
+from django.contrib.auth.models import User
+from rest_framework import status
+from rest_framework.test import APITestCase
+from .models import ContactInquiry
+
+class AdminInquiryListViewTest(APITestCase):
+    def setUp(self):
+        # Create Users
+        self.admin_user = User.objects.create_superuser(
+            username="admin_mark", password="adminpassword"
+        )
+        self.regular_user = User.objects.create_user(
+            username="driver_user", password="driverpassword"
+        )
+        
+        # Create multiple inquiries to test ordering
+        ContactInquiry.objects.create(
+            name="User 1", email="u1@test.com", subject="First", message="Oldest"
+        )
+        ContactInquiry.objects.create(
+            name="User 2", email="u2@test.com", subject="Second", message="Newest"
+        )
+        
+        self.url = reverse('inquiry-list') # Ensure this matches your urls.py 'name'
+
+    def test_list_inquiries_as_admin(self):
+        """Tests that a superuser can see all inquiries in descending order."""
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        # Verify ordering: The first item in the list should be the most recent one (User 2)
+        self.assertEqual(response.data[0]['name'], "User 2")
+
+    def test_list_inquiries_forbidden_for_regular_user(self):
+        """Tests that a regular user is blocked from seeing the inquiry list."""
+        self.client.force_authenticate(user=self.regular_user)
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_inquiries_unauthenticated(self):
+        """Tests that anonymous users cannot access the list."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
