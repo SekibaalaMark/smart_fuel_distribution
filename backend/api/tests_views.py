@@ -153,3 +153,68 @@ class AdminInquiryListViewTest(APITestCase):
         """Tests that anonymous users cannot access the list."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        
+        
+        
+
+
+
+from django.urls import reverse
+from django.contrib.auth.models import User
+from django.core import mail
+from rest_framework import status
+from rest_framework.test import APITestCase
+from .models import ContactInquiry
+
+class AdminReplyEmailViewTest(APITestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser(
+            username="admin_mark", password="adminpassword"
+        )
+        self.inquiry = ContactInquiry.objects.create(
+            name="John Doe",
+            email="john@example.com",
+            subject="Late Delivery",
+            message="My fuel delivery is 2 hours late."
+        )
+        # Assuming your URL pattern looks like 'admin-reply' with a <int:pk>
+        self.url = reverse('admin-reply', kwargs={'pk': self.inquiry.pk})
+
+    def test_send_reply_success(self):
+        """Tests that an admin can reply, an email is sent, and the DB is updated."""
+        self.client.force_authenticate(user=self.admin_user)
+        reply_message = "We apologize for the delay, the truck is 5 minutes away."
+        
+        response = self.client.post(self.url, {"message": reply_message}, format='json')
+
+        # 1. Check response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], "Email sent to client's inbox!")
+
+        # 2. Check the Email Outbox
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Re: Late Delivery")
+        self.assertEqual(mail.outbox[0].body, reply_message)
+        self.assertEqual(mail.outbox[0].to, ["john@example.com"])
+
+        # 3. Check DB Persistence
+        self.inquiry.refresh_from_db()
+        self.assertTrue(self.inquiry.is_resolved)
+        self.assertEqual(self.inquiry.admin_reply, reply_message)
+
+    def test_send_reply_empty_message(self):
+        """Tests that sending an empty message returns a 400 error."""
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.post(self.url, {"message": ""}, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], "Message body is empty")
+
+    def test_inquiry_not_found(self):
+        """Tests that replying to a non-existent ID returns a 404."""
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('admin-reply', kwargs={'pk': 9999})
+        response = self.client.post(url, {"message": "Hello"}, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
