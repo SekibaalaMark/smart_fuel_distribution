@@ -218,3 +218,44 @@ class AdminReplyEmailViewTest(APITestCase):
         response = self.client.post(url, {"message": "Hello"}, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+        
+        
+        
+        
+
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+from .models import CompanyProfile
+
+class CompanyInfoViewTest(APITestCase):
+    def setUp(self):
+        self.url = reverse('company-info') # Ensure this matches your urls.py 'name'
+
+    def test_get_company_info_success(self):
+        """Tests that the public can successfully view the company profile."""
+        # Create a profile to retrieve
+        CompanyProfile.objects.create(
+            name="Enkizo Fuel",
+            hero_title="Smart Distribution",
+            hero_subtitle="Efficiency at scale.",
+            contact_email="office@enkizo.com"
+        )
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['hero_title'], "Smart Distribution")
+        # Ensure name isn't there (if your serializer still excludes it)
+        self.assertNotIn('name', response.data)
+
+    def test_get_company_info_not_found(self):
+        """Tests the response when no profile has been created yet."""
+        # Ensure database is empty for this test
+        CompanyProfile.objects.all().delete()
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data['message'], "No company profile found. Please create one in Admin.")
