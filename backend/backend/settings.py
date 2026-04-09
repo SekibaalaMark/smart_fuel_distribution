@@ -78,13 +78,13 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # This will look for a DATABASE_URL environment variable
 # If it doesn't find one (like on your local machine), it defaults to SQLite
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
+    'default': dj_database_url.parse(
+        "postgresql://neondb_owner:npg_gBYHq6ayO0nz@ep-dark-dawn-anpsvv04-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+        ,
         conn_max_age=600,
         ssl_require=True
     )
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
