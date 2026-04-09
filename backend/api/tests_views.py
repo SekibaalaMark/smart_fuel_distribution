@@ -259,3 +259,57 @@ class CompanyInfoViewTest(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['message'], "No company profile found. Please create one in Admin.")
+        
+        
+        
+        
+
+
+from django.urls import reverse
+from django.core import mail
+from rest_framework import status
+from rest_framework.test import APITestCase
+from .models import ContactInquiry
+
+class ContactCreateViewTest(APITestCase):
+    def setUp(self):
+        self.url = reverse('contact-create') # Ensure this matches your urls.py
+        self.valid_payload = {
+            "name": "Jane Doe",
+            "email": "jane@fuelstation.com",
+            "subject": "Bulk Fuel Order",
+            "message": "I need 5,000 liters of diesel delivered by Friday."
+        }
+
+    def test_create_inquiry_success(self):
+        """Tests that a public user can submit an inquiry and an email is triggered."""
+        response = self.client.post(self.url, self.valid_payload, format='json')
+
+        # 1. Check HTTP Status
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['message'], "Inquiry received and email sent successfully!")
+
+        # 2. Check Database Persistence
+        self.assertEqual(ContactInquiry.objects.count(), 1)
+        inquiry = ContactInquiry.objects.first()
+        self.assertEqual(inquiry.name, "Jane Doe")
+
+        # 3. Check Notification Email
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "New Website Inquiry: Bulk Fuel Order")
+        self.assertIn('sekibaalamark44@gmail.com', mail.outbox[0].to)
+        self.assertIn("Jane Doe", mail.outbox[0].body)
+
+    def test_create_inquiry_invalid_data(self):
+        """Tests that the view fails when invalid data is provided."""
+        invalid_payload = {
+            "name": "",
+            "email": "not-an-email"
+        }
+        response = self.client.post(self.url, invalid_payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Ensure nothing was saved to DB
+        self.assertEqual(ContactInquiry.objects.count(), 0)
+        # Ensure no email was sent
+        self.assertEqual(len(mail.outbox), 0)
