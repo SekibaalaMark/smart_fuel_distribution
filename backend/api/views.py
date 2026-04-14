@@ -79,37 +79,6 @@ class AdminReplyEmailView(APIView):
 
 
 
-'''
-class AdminReplyEmailView(APIView):
-    permission_classes = [IsSuperUser]
-
-    def post(self, request, pk):
-        try:
-            inquiry = ContactInquiry.objects.get(pk=pk)
-            reply_message = request.data.get('message')
-
-            if not reply_message:
-                return Response({"error": "Reply message is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Send the actual email to the client
-            send_mail(
-                subject=f"Re: {inquiry.subject}",
-                message=reply_message,
-                from_email=None, 
-                recipient_list=[inquiry.email],
-            )
-
-            # Mark as resolved in DB
-            inquiry.is_resolved = True
-            inquiry.admin_reply = reply_message
-            inquiry.save()
-
-            return Response({"message": "Reply sent to client successfully!"})
-        except ContactInquiry.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-'''
-
 # 1. Fetch website content (GET)
 class CompanyInfoView(APIView):
     def get(self, request):
